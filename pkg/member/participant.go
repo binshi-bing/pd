@@ -53,7 +53,7 @@ type Participant struct {
 	rootPath   string
 	leaderPath string
 	// memberValue is the serialized string of `member`. It will be saved in the
-	// eader key when this participant is successfully elected as the leader of
+	// leader key when this participant is successfully elected as the leader of
 	// the group. Every write will use it to check the leadership.
 	memberValue string
 }

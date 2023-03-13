@@ -59,11 +59,6 @@ type tsoServiceDiscovery struct {
 	// addr -> a gRPC connection
 	clientConns sync.Map // Store as map[string]*grpc.ClientConn
 
-	// primarySwitchedCbs will be called after the primary swichted
-	primarySwitchedCbs []func()
-	// membersChangedCbs will be called after there is any membership
-	// change in the primary and followers
-	membersChangedCbs []func()
 	// localAllocPrimariesUpdatedCb will be called when the local tso allocator primary list is updated.
 	// The input is a map {DC Localtion -> Leader Addr}
 	localAllocPrimariesUpdatedCb tsoLocalServAddrsUpdatedFunc
@@ -219,13 +214,11 @@ func (c *tsoServiceDiscovery) CheckMemberChanged() error {
 // AddServingAddrSwitchedCallback adds callbacks which will be called when the primary in
 // a primary/secondary configured cluster is switched.
 func (c *tsoServiceDiscovery) AddServingAddrSwitchedCallback(callbacks ...func()) {
-	c.primarySwitchedCbs = append(c.primarySwitchedCbs, callbacks...)
 }
 
 // AddServiceAddrsSwitchedCallback adds callbacks which will be called when any primary/secondary
 // in a primary/secondary configured cluster is changed.
 func (c *tsoServiceDiscovery) AddServiceAddrsSwitchedCallback(callbacks ...func()) {
-	c.membersChangedCbs = append(c.membersChangedCbs, callbacks...)
 }
 
 // SetTSOLocalServAddrsUpdatedCallback adds a callback which will be called when the local tso
@@ -277,9 +270,6 @@ func (c *tsoServiceDiscovery) switchPrimary(addrs []string) error {
 		if err := c.globalAllocPrimariesUpdatedCb(addr); err != nil {
 			return err
 		}
-	}
-	for _, cb := range c.primarySwitchedCbs {
-		cb()
 	}
 	log.Info("[tso] switch primary", zap.String("new-primary", addr), zap.String("old-primary", oldPrimary))
 	return nil

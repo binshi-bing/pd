@@ -53,7 +53,7 @@ import (
 const (
 	// resourceManagerPrimaryPrefix defines the key prefix for keyspace group primary election.
 	// The entire key is in the format of "/ms/<cluster-id>/resource-manager/<group-id>/primary"
-	// in which <group-id> is 5 digits integer with leading zeros. For now we use 0 as the default cluster id.
+	// in which <group-id> is 5 digits integer with leading zeros. 0 is the default cluster id.
 	resourceManagerPrimaryPrefix = "/ms/0/resource-manager"
 )
 

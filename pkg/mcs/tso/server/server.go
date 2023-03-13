@@ -68,7 +68,7 @@ const (
 	pdRootPath = "/pd"
 	// tsoPrimaryPrefix defines the key prefix for keyspace group primary election.
 	// The entire key is in the format of "/ms/<cluster-id>/tso/<group-id>/primary" in which
-	// <group-id> is 5 digits integer with leading zeros. For now we use 0 as the default cluster id.
+	// <group-id> is 5 digits integer with leading zeros. 0 is the default cluster id.
 	tsoPrimaryPrefix = "/ms/0/tso"
 )
 
@@ -573,9 +573,12 @@ func (s *Server) startServer() (err error) {
 	serverInfo.WithLabelValues(versioninfo.PDReleaseVersion, versioninfo.PDGitHash).Set(float64(time.Now().Unix()))
 	s.defaultGroupRootPath = path.Join(pdRootPath, strconv.FormatUint(s.clusterID, 10))
 
-	// TODO: Figure out how we should generated the unique id and name passed to Participant.
-	// For now, set the name to be listen address and generate the unique id from the name with sha256.
-	uniqueName := s.cfg.ListenAddr
+	s.listenURL, err = url.Parse(s.cfg.ListenAddr)
+	if err != nil {
+		return err
+	}
+
+	uniqueName := s.listenURL.Host // in the host:port format
 	uniqueID := memberutil.GenerateUniqueID(uniqueName)
 	log.Info("joining primary election", zap.String("participant-name", uniqueName), zap.Uint64("participant-id", uniqueID))
 
@@ -595,10 +598,6 @@ func (s *Server) startServer() (err error) {
 	s.service = &Service{Server: s}
 
 	tlsConfig, err := s.cfg.Security.ToTLSConfig()
-	if err != nil {
-		return err
-	}
-	s.listenURL, err = url.Parse(s.cfg.ListenAddr)
 	if err != nil {
 		return err
 	}
